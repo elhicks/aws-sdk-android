@@ -184,10 +184,18 @@ public class InteractionClient {
     }
 
     public InteractionClient(Context context,
+                             AWSCredentialsProvider credentialsProvider,
+                             Regions region,
+                             InteractionConfig interactionConfig,
+                             ClientConfiguration clientConfiguration) {
+        this(context, credentialsProvider, region, interactionConfig, clientConfiguration, new AmazonLexRuntimeClient(credentialsProvider, clientConfiguration));
+    }
+
+    public InteractionClient(Context context,
             AWSCredentialsProvider credentialsProvider,
             Regions region,
             InteractionConfig interactionConfig,
-            ClientConfiguration clientConfiguration) {
+            ClientConfiguration clientConfiguration, AmazonLexRuntime substituteRuntime) {
 
         if (context == null) {
             throw new InvalidParameterException("Context cannot be null.");
@@ -197,11 +205,11 @@ public class InteractionClient {
 
         // Check if all necessary credentials are available.
         if (credentialsProvider == null) {
-            throw new InvalidParameterException("Credentials are not set.");
+            //throw new InvalidParameterException("Credentials are not set.");
         }
 
         if (interactionConfig == null) {
-            throw new InvalidParameterException("Interaction config is not set.");
+            //throw new InvalidParameterException("Interaction config is not set.");
         }
 
         if ((interactionConfig.getUserId() == null || interactionConfig.getUserId().isEmpty())
@@ -227,7 +235,7 @@ public class InteractionClient {
 
         clientConfiguration.setUserAgent(userAgent);
 
-        amazonlex = new AmazonLexRuntimeClient(credentialsProvider, clientConfiguration);
+        amazonlex = substituteRuntime != null ? substituteRuntime : new AmazonLexRuntimeClient(credentialsProvider, clientConfiguration);
         amazonlex.setRegion(Region.getRegion(region));
     }
 

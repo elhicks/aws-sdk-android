@@ -276,7 +276,7 @@ public class InteractiveVoiceView extends View {
         mDrawable.draw(canvas);
     }
 
-    void animateListening() {
+        public void animateListening() {
         animateImageSwitch(new ActionHandler() {
             @Override
             public void handle() {
@@ -285,7 +285,7 @@ public class InteractiveVoiceView extends View {
         });
     }
 
-    void animateAudioPlayback() {
+        public void animateAudioPlayback() {
         state = TRANSITION_TO_TALKING;
         animateImageSwitch(new ActionHandler() {
             @Override
@@ -471,6 +471,10 @@ public class InteractiveVoiceView extends View {
         viewAdapter.setVoiceListener(listener);
     }
 
+    public InteractiveVoiceListener getListener(){
+        return listener;
+    }
+
     /**
      * Returns view adapter.
      * @return The adapter set for this object.
@@ -587,6 +591,12 @@ public class InteractiveVoiceView extends View {
          * @param e The exception for the error.
          */
         void onError(String responseText, Exception e);
+
+            void onReadyForRecording();
+
+            void onStartedRecording();
+
+            void onVoiceClick(int STATE);
     }
 
     /**

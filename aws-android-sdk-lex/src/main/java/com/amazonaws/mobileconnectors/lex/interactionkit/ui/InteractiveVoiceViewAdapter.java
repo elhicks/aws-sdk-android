@@ -32,6 +32,7 @@ import com.amazonaws.mobileconnectors.lex.interactionkit.listeners.AudioPlayback
 import com.amazonaws.mobileconnectors.lex.interactionkit.listeners.InteractionListener;
 import com.amazonaws.mobileconnectors.lex.interactionkit.listeners.MicrophoneListener;
 import com.amazonaws.regions.Regions;
+import com.amazonaws.services.lexrts.AmazonLexRuntime;
 import com.amazonaws.services.lexrts.model.DialogState;
 
 import java.util.HashMap;
@@ -61,6 +62,7 @@ public class InteractiveVoiceViewAdapter
     private boolean shouldInitialize;
     private Map<String, String> sessionAttributes;
     private final ClientConfiguration clientConfiguration;
+    private AmazonLexRuntime amazonLexRuntime;
 
     // Dialog states.
     protected final static int STATE_NOT_READY = 0;
@@ -170,11 +172,17 @@ public class InteractiveVoiceViewAdapter
     @Override
     public void readyForRecording() {
         // noop.
+        if(voiceListener != null) {
+            voiceListener.onReadyForRecording();
+        }
     }
 
     @Override
     public void startedRecording() {
         //noop.
+        if(voiceListener != null) {
+            voiceListener.onStartedRecording();
+        }
     }
 
     @Override
@@ -211,7 +219,10 @@ public class InteractiveVoiceViewAdapter
 
     @Override
     public void onClick(View v) {
-        // Return if not ready.
+        voiceClick();
+    }
+
+    public void voiceClick(){
         switch (state) {
             case STATE_READY:
                 if (shouldInitialize) {
@@ -230,6 +241,8 @@ public class InteractiveVoiceViewAdapter
                 state = STATE_READY;
                 break;
         }
+
+        voiceListener.onVoiceClick(state);
     }
 
     /**
@@ -260,6 +273,10 @@ public class InteractiveVoiceViewAdapter
         }
     }
 
+    public void overrideLexRuntime(AmazonLexRuntime amazonLexRuntime){
+        this.amazonLexRuntime = amazonLexRuntime;
+    }
+
     /**
      * Creates the interaction client, uses default interaction config setting
      * {@link com.amazonaws.mobileconnectors.lex.interactionkit.config.InteractionConfig}
@@ -271,13 +288,23 @@ public class InteractiveVoiceViewAdapter
             lexInteractionClient.cancel();
         }
 
-        lexInteractionClient = new InteractionClient(
-                context,
-                credentialsProvider,
-                awsRegion,
-                interactionConfig,
-                clientConfiguration);
-
+        if(amazonLexRuntime == null){
+            lexInteractionClient = new InteractionClient(
+                    context,
+                    credentialsProvider,
+                    awsRegion,
+                    interactionConfig,
+                    clientConfiguration);
+        }
+        else {
+            lexInteractionClient = new InteractionClient(
+                    context,
+                    credentialsProvider,
+                    awsRegion,
+                    interactionConfig,
+                    clientConfiguration,
+                    amazonLexRuntime);
+        }
         lexInteractionClient.setAudioPlaybackListener(this);
         lexInteractionClient.setInteractionListener(this);
         lexInteractionClient.setMicrophoneListener(this);
@@ -309,7 +336,7 @@ public class InteractiveVoiceViewAdapter
     /**
      * Cancel current dialog.
      */
-    protected void cancel() {
+    public void cancel() {
         reset();
     }
 
